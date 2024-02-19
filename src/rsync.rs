@@ -85,7 +85,13 @@ pub fn rsync(
   );
 
   let mut child = cmd.spawn()?;
-  child.wait()?;
+  let status = child.wait()?;
+  if !status.success() {
+    return Err(anyhow!(
+      "Failed to sync the project via rsync. Exit status: {:?}",
+      status.code()
+    ));
+  }
 
   return Ok(());
 }
