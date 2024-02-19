@@ -5,6 +5,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Error};
 use camino::Utf8Path;
+use log::{debug, info, warn};
 use wslpath::windows_to_wsl;
 
 use crate::gitignore::gitignore_files;
@@ -76,7 +77,14 @@ pub fn rsync(
   ]);
 
   // ignore the excluded files
-  let git_excludes = gitignore_files(&Utf8Path::new(source))?;
+  let git_excludes = gitignore_files(&Utf8Path::new(source)).unwrap_or_else(|err| {
+    warn!(
+      "Failed to get gitignored files: {}\nConsidering no git ignored files.",
+      err
+    );
+    Vec::new()
+  });
+
   cmd.args(
     exclude
       .into_iter()

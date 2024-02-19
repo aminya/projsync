@@ -17,9 +17,16 @@ pub fn gitignore_files(root: &Utf8Path) -> Result<Vec<Utf8PathBuf>, Error> {
       "--directory",
     ])
     .output()
-    .map_err(|err| anyhow::anyhow!("Failed to run git ls-files: {}", err))
+    .map_err(|err| anyhow::anyhow!("Failed to run git ls-files at {root}: {err}"))
     .map(|output| {
-      String::from_utf8(output.stdout)
+      if !output.status.success() {
+        return Err(anyhow::anyhow!(
+          "Failed to run git ls-files at {root}: {}",
+          String::from_utf8(output.stderr).unwrap_or_else(|_| "Unknown error".to_string())
+        ));
+      }
+
+      let paths = String::from_utf8(output.stdout)
         .unwrap()
         .split('\n')
         .filter_map(|file| {
@@ -28,8 +35,10 @@ pub fn gitignore_files(root: &Utf8Path) -> Result<Vec<Utf8PathBuf>, Error> {
           }
           return None;
         })
-        .collect()
-    });
+        .collect();
+
+      return Ok(paths);
+    })?;
 
   return excluded_files;
 }

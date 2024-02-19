@@ -10,3 +10,5 @@ argh = { git = "https://github.com/google/argh", rev = "e901d3a1c" }
 camino = "1.1.6"
 untildify = { git = "https://github.com/aminya/untildify", rev = "6be54e10f" }
 wslpath = "0.0.2"
+env_logger = "0.11.2"
+log = "0.4.20"

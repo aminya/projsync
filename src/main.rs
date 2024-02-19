@@ -7,10 +7,11 @@
   clippy::type_complexity
 )]
 
-use std::env;
+use std::env::current_dir;
 
 use anyhow::{anyhow, Error};
 use argh::FromArgs;
+use log::LevelFilter;
 use untildify::untildify;
 
 mod gitignore;
@@ -61,11 +62,18 @@ pub struct Opts {
 }
 
 fn main() -> Result<(), Error> {
+  env_logger::builder()
+    .filter_level(LevelFilter::Info)
+    .parse_default_env()
+    .format_target(true)
+    .format_timestamp(None)
+    .init();
+
   let opts: Opts = argh::from_env();
 
   let source = match opts.source {
     Some(source) => untildify(&source),
-    None => env::current_dir()?
+    None => current_dir()?
       .into_os_string()
       .into_string()
       .map_err(|err| {
