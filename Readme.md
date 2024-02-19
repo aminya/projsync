@@ -9,7 +9,7 @@ It uses `rsync` to sync the files and automatically excludes the files in the `.
 # Installation
 
 ```shell
-cargo install --git https://github.com/aminya/projsync.git --rev main
+cargo install --git https://github.com/aminya/projsync.git --rev 394da46e04
 ```
 
 # Examples
