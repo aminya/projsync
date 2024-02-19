@@ -5,17 +5,22 @@ use std::process::Command;
 
 use anyhow::Error;
 use camino::{Utf8Path, Utf8PathBuf};
+use log::trace;
 
 pub fn gitignore_files(root: &Utf8Path) -> Result<Vec<Utf8PathBuf>, Error> {
-  let excluded_files = Command::new("git")
-    .args([
-      "-C",
-      root.as_str(),
-      "ls-files",
-      "--exclude-standard",
-      "-oi",
-      "--directory",
-    ])
+  let mut cmd = Command::new("git");
+  cmd.args([
+    "-C",
+    root.as_str(),
+    "ls-files",
+    "--exclude-standard",
+    "-oi",
+    "--directory",
+  ]);
+
+  trace!("Running `{cmd:?}` at {root}");
+
+  let excluded_files = cmd
     .output()
     .map_err(|err| anyhow::anyhow!("Failed to run git ls-files at {root}: {err}"))
     .map(|output| {

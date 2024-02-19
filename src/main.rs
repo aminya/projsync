@@ -63,7 +63,7 @@ pub struct Opts {
 
 fn main() -> Result<(), Error> {
   env_logger::builder()
-    .filter_level(LevelFilter::Info)
+    .filter_level(LevelFilter::Trace)
     .parse_default_env()
     .format_target(true)
     .format_timestamp(None)

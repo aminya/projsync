@@ -5,7 +5,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Error};
 use camino::Utf8Path;
-use log::{debug, info, warn};
+use log::{info, trace, warn};
 use wslpath::windows_to_wsl;
 
 use crate::gitignore::gitignore_files;
@@ -39,14 +39,16 @@ pub fn rsync(
 ) -> Result<(), Error> {
   let mut cmd;
 
+  let source_posix = to_posix_path(source)?;
+
   match remote.as_str() {
     // localwsl syncinc on windows 64 bit
     "localwsl" if cfg!(windows) && cfg!(target_pointer_width = "64") => {
       cmd = Command::new("wsl");
       cmd.arg("rsync");
 
-      if source != target {
-        cmd.args([to_posix_path(source).unwrap(), target.to_owned()]);
+      if source_posix != target {
+        cmd.args([&source_posix, target]);
       } else {
         return Err(anyhow!(
           "Cannot sync a directory with itself. target and source were: {}",
@@ -61,7 +63,7 @@ pub fn rsync(
       cmd.args([
         "-e",
         &format!("ssh -p {}", port),
-        &to_posix_path(source)?,
+        &source_posix,
         &format!("{}:{}", remote, target),
       ]);
     }
@@ -91,6 +93,9 @@ pub fn rsync(
       .chain(git_excludes.into_iter().map(|ex| ex.into_string()))
       .map(|ex| format!("--exclude={}", ex)),
   );
+
+  info!("Syncing {source_posix} to {target} at {remote}:{port}");
+  trace!("Running `{cmd:?}`");
 
   let mut child = cmd.spawn()?;
   let status = child.wait()?;
